@@ -8,6 +8,9 @@
     "frontendDist": "../dist"
   },
   "app": {
+    "security": {
+      "capabilities": ["default"]
+    },
     "windows": [
       {
         "title": "picosat",

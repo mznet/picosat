@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "allow-read-file-content"
+description = "Allow read_file_content command for opening markdown files"
+commands.allow = ["read_file_content"]

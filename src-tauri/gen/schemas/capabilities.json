@@ -1,1 +1,1 @@
-{}
+{"default":{"identifier":"default","description":"Default capability for main window - dialog and read_file_content","local":true,"windows":["*"],"permissions":["core:default","shell:allow-open","dialog:allow-open","dialog:default","allow-read-file-content"]}}

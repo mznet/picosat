@@ -1,7 +1,11 @@
 import { useState, useCallback, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 
-const isTauri = typeof window !== 'undefined' && (window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__ != null
+function isTauriEnv(): boolean {
+  if (typeof window === 'undefined') return false
+  const w = window as unknown as { __TAURI_INTERNALS__?: unknown; __TAURI__?: unknown }
+  return w.__TAURI_INTERNALS__ != null || w.__TAURI__ != null
+}
 
 export default function MarkdownViewer() {
   const [markdown, setMarkdown] = useState('')
@@ -10,7 +14,7 @@ export default function MarkdownViewer() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleOpenFile = useCallback(async () => {
-    if (isTauri) {
+    if (isTauriEnv()) {
       try {
         const { open } = await import('@tauri-apps/plugin-dialog')
         const { invoke } = await import('@tauri-apps/api/core')
