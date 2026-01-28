@@ -1,7 +1,7 @@
 {
-  "productName": "JSON Diff",
+  "productName": "picosat",
   "version": "0.1.0",
-  "identifier": "com.jsondiff",
+  "identifier": "com.picosat",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
@@ -10,11 +10,12 @@
   "app": {
     "windows": [
       {
-        "title": "JSON Diff",
+        "title": "picosat",
         "width": 1200,
         "height": 800,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "decorations": true
       }
     ],
     "security": {

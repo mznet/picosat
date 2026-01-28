@@ -1,4 +1,6 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
+import Sidebar, { type ViewType } from './components/Sidebar'
+import MarkdownViewer from './components/MarkdownViewer'
 
 type DiffType = 'added' | 'removed' | 'changed' | 'unchanged'
 
@@ -29,6 +31,7 @@ interface FlatDiffRow {
 }
 
 function App() {
+  const [currentView, setCurrentView] = useState<ViewType>('json-diff')
   const [leftJson, setLeftJson] = useState('')
   const [rightJson, setRightJson] = useState('')
   const [leftError, setLeftError] = useState<string | null>(null)
@@ -486,13 +489,15 @@ function App() {
   const viewportTop = (scrollInfo.scrollTop / scrollInfo.scrollHeight) * 100
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100">
-      <div className="max-w-[1800px] mx-auto px-4 py-6">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-100">JSON Diff</h1>
-          <p className="mt-1 text-sm text-gray-400">Compare two JSON objects side by side</p>
-        </div>
+    <div className="min-h-screen bg-gray-950 text-gray-100 flex">
+      <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+      <main className="flex-1 flex flex-col min-w-0 overflow-auto">
+        {currentView === 'json-diff' && (
+          <div className="max-w-[1800px] mx-auto px-4 py-6 w-full">
+            {/* Header */}
+            <div className="mb-4">
+              <h1 className="text-lg font-medium text-gray-200">JSON Diff</h1>
+            </div>
 
         {/* Input Section */}
         <div className={`grid gap-4 mb-6 ${showDiff ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
@@ -503,19 +508,19 @@ function App() {
                 type="text"
                 value={leftLabel}
                 onChange={(e) => setLeftLabel(e.target.value)}
-                className="text-sm font-medium text-gray-300 bg-transparent border-b border-transparent hover:border-gray-600 focus:border-blue-500 focus:outline-none px-1 py-0.5 -ml-1 transition-colors"
+                className="text-xs font-medium text-gray-300 bg-transparent border-b border-transparent hover:border-gray-600 focus:border-blue-500 focus:outline-none px-1 py-0.5 -ml-1 transition-colors"
                 placeholder="Label"
               />
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowDiff(!showDiff)}
-                  className="px-3 py-1 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                  className="px-3 py-1.5 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
                 >
                   {showDiff ? 'Hide Diff' : 'Show Diff'}
                 </button>
                 <button
                   onClick={() => formatJson(leftJson, setLeftJson, setLeftError)}
-                  className="px-3 py-1 text-xs font-medium rounded-md bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700 transition-colors"
+                  className="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700 transition-colors"
                 >
                   Format
                 </button>
@@ -526,12 +531,12 @@ function App() {
               onChange={(e) => setLeftJson(e.target.value)}
               placeholder='{"key": "value"}'
               spellCheck={false}
-              className={`w-full h-[576px] p-3 font-mono text-sm rounded-lg border bg-gray-900 text-gray-100 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
-                leftError ? 'border-red-500/50 focus:ring-red-500' : 'border-gray-700'
+              className={`w-full h-[576px] p-3 font-mono text-sm rounded-lg border bg-gray-950 text-gray-100 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
+                leftError ? 'border-red-500/50 focus:ring-red-500' : 'border-gray-800'
               }`}
             />
             {leftError && (
-              <div className="flex items-center gap-2 p-2 text-sm bg-red-950/50 border border-red-900/50 rounded-md text-red-400">
+              <div className="flex items-center gap-2 p-2 text-xs bg-red-950/50 border border-red-900/50 rounded-md text-red-400">
                 <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
@@ -548,12 +553,12 @@ function App() {
                   type="text"
                   value={rightLabel}
                   onChange={(e) => setRightLabel(e.target.value)}
-                  className="text-sm font-medium text-gray-300 bg-transparent border-b border-transparent hover:border-gray-600 focus:border-blue-500 focus:outline-none px-1 py-0.5 -ml-1 transition-colors"
+                  className="text-xs font-medium text-gray-300 bg-transparent border-b border-transparent hover:border-gray-600 focus:border-blue-500 focus:outline-none px-1 py-0.5 -ml-1 transition-colors"
                   placeholder="Label"
                 />
                 <button
                   onClick={() => formatJson(rightJson, setRightJson, setRightError)}
-                  className="px-3 py-1 text-xs font-medium rounded-md bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700 transition-colors"
+                  className="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700 transition-colors"
                 >
                   Format
                 </button>
@@ -563,12 +568,12 @@ function App() {
                 onChange={(e) => setRightJson(e.target.value)}
                 placeholder='{"key": "value"}'
                 spellCheck={false}
-                className={`w-full h-[576px] p-3 font-mono text-sm rounded-lg border bg-gray-900 text-gray-100 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
-                  rightError ? 'border-red-500/50 focus:ring-red-500' : 'border-gray-700'
+                className={`w-full h-[576px] p-3 font-mono text-sm rounded-lg border bg-gray-950 text-gray-100 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
+                  rightError ? 'border-red-500/50 focus:ring-red-500' : 'border-gray-800'
                 }`}
               />
               {rightError && (
-                <div className="flex items-center gap-2 p-2 text-sm bg-red-950/50 border border-red-900/50 rounded-md text-red-400">
+                <div className="flex items-center gap-2 p-2 text-xs bg-red-950/50 border border-red-900/50 rounded-md text-red-400">
                   <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
@@ -581,11 +586,11 @@ function App() {
 
         {/* Diff View - only show when showDiff is true */}
         {showDiff && (
-          <div className="rounded-lg border border-gray-700 overflow-hidden bg-gray-900">
+          <div className="rounded-lg border border-gray-800 overflow-hidden bg-gray-950">
             {/* Diff Header */}
-            <div className="flex items-center justify-between px-4 py-3 bg-gray-800 border-b border-gray-700">
+            <div className="flex items-center justify-between px-3 py-2 bg-gray-900/50 border-b border-gray-800">
               <div className="flex items-center gap-4">
-                <span className="text-sm font-medium text-gray-300">Diff View</span>
+                <span className="text-xs font-medium text-gray-500">Diff View</span>
                 {diffTree && (
                   <div className="flex items-center gap-3 text-xs">
                     {stats.added > 0 && <span className="text-green-400">+{stats.added}</span>}
@@ -598,13 +603,13 @@ function App() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={expandAll}
-                    className="px-2 py-1 text-xs font-medium rounded bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors"
+                    className="px-2 py-1.5 text-xs font-medium rounded bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors"
                   >
                     Expand All
                   </button>
                   <button
                     onClick={collapseAll}
-                    className="px-2 py-1 text-xs font-medium rounded bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors"
+                    className="px-2 py-1.5 text-xs font-medium rounded bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors"
                   >
                     Collapse All
                   </button>
@@ -621,33 +626,33 @@ function App() {
                   <svg className="w-12 h-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <p className="text-sm">Enter JSON in both panels to compare</p>
+                  <p className="text-xs">Enter JSON in both panels to compare</p>
                 </div>
               ) : leftError || rightError ? (
                 <div className="flex flex-col items-center justify-center py-16 text-yellow-500">
                   <svg className="w-12 h-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
-                  <p className="text-sm">Fix JSON errors to see diff</p>
+                  <p className="text-xs">Fix JSON errors to see diff</p>
                 </div>
               ) : !diffTree ? (
                 <div className="flex flex-col items-center justify-center py-16 text-gray-500">
-                  <p className="text-sm">No content to compare</p>
+                  <p className="text-xs">No content to compare</p>
                 </div>
               ) : stats.added === 0 && stats.removed === 0 && stats.changed === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-green-500">
                   <svg className="w-12 h-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <p className="text-sm">Files are identical</p>
+                  <p className="text-xs">Files are identical</p>
                 </div>
               ) : (
                 <table className="w-full">
                   <thead>
-                    <tr className="text-xs text-gray-500 bg-gray-800/50">
-                      <th className="py-2 px-4 text-left font-medium w-1/2">{leftLabel}</th>
+                    <tr className="text-xs text-gray-500 bg-gray-900/50">
+                      <th className="py-2 px-3 text-left font-medium w-1/2">{leftLabel}</th>
                       <th className="w-px bg-gray-700" />
-                      <th className="py-2 px-4 text-left font-medium w-1/2">{rightLabel}</th>
+                      <th className="py-2 px-3 text-left font-medium w-1/2">{rightLabel}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -697,7 +702,14 @@ function App() {
           </div>
           </div>
         )}
-      </div>
+          </div>
+        )}
+        {currentView === 'markdown' && (
+          <div className="max-w-[1800px] mx-auto px-4 py-6 w-full flex-1 flex flex-col min-h-0">
+            <MarkdownViewer />
+          </div>
+        )}
+      </main>
     </div>
   )
 }
