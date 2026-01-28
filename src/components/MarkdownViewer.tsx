@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 function isTauriEnv(): boolean {
   if (typeof window === 'undefined') return false
@@ -106,9 +107,10 @@ export default function MarkdownViewer() {
           <div className="px-3 py-2 border-b border-gray-800 text-xs font-medium text-gray-500 bg-gray-900/50 flex-shrink-0">
             Preview
           </div>
-          <div className="flex-1 p-4 overflow-auto prose prose-invert prose-sm max-w-none prose-headings:text-gray-200 prose-p:text-gray-300 prose-code:text-gray-200 prose-pre:bg-gray-800 prose-li:text-gray-300 prose-blockquote:text-gray-400">
+          <div className="flex-1 p-4 overflow-auto prose prose-invert prose-sm max-w-none prose-headings:text-gray-200 prose-p:text-gray-300 prose-code:text-gray-200 prose-pre:bg-gray-800 prose-li:text-gray-300 prose-blockquote:text-gray-400 prose-table:text-gray-300 prose-th:border prose-th:border-gray-600 prose-th:bg-gray-800 prose-th:px-3 prose-th:py-2 prose-td:border prose-td:border-gray-600 prose-td:px-3 prose-td:py-2">
             {markdown.trim() ? (
               <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
                 components={{
                   a: ({ node, ...props }) => (
                     <a {...props} className="text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer" />
@@ -121,6 +123,17 @@ export default function MarkdownViewer() {
                     ),
                   pre: ({ node, ...props }) => (
                     <pre className="bg-gray-800 rounded-lg p-4 overflow-x-auto text-sm" {...props} />
+                  ),
+                  table: ({ node, ...props }) => (
+                    <div className="overflow-x-auto my-3">
+                      <table className="min-w-full border-collapse border border-gray-600" {...props} />
+                    </div>
+                  ),
+                  th: ({ node, ...props }) => (
+                    <th className="border border-gray-600 bg-gray-800 px-3 py-2 text-left text-gray-200 font-medium" {...props} />
+                  ),
+                  td: ({ node, ...props }) => (
+                    <td className="border border-gray-600 px-3 py-2 text-gray-300" {...props} />
                   ),
                 }}
               >
