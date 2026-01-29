@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import Sidebar, { type ViewType } from './components/Sidebar'
 import MarkdownViewer from './components/MarkdownViewer'
+import MermaidViewer from './components/MermaidViewer'
 
 type DiffType = 'added' | 'removed' | 'changed' | 'unchanged'
 
@@ -707,6 +708,11 @@ function App() {
         {currentView === 'markdown' && (
           <div className="max-w-[1800px] mx-auto px-4 py-6 w-full flex-1 flex flex-col min-h-0">
             <MarkdownViewer />
+          </div>
+        )}
+        {currentView === 'mermaid' && (
+          <div className="max-w-[1800px] mx-auto px-4 py-6 w-full flex-1 flex flex-col min-h-0">
+            <MermaidViewer />
           </div>
         )}
       </main>

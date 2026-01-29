@@ -13,3 +13,8 @@ html, body {
   min-height: 100vh;
   background-color: #030712;
 }
+
+.mermaid-preview svg {
+  max-width: 100%;
+  height: auto;
+}
