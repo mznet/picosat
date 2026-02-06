@@ -1,4 +1,4 @@
-type ViewType = 'json-diff' | 'markdown' | 'mermaid'
+type ViewType = 'json-diff' | 'yaml-diff' | 'markdown' | 'mermaid'
 
 interface SidebarProps {
   currentView: ViewType
@@ -7,6 +7,7 @@ interface SidebarProps {
 
 const views: { id: ViewType; label: string; letter: string }[] = [
   { id: 'json-diff', label: 'JSON Diff', letter: 'J' },
+  { id: 'yaml-diff', label: 'YAML Diff', letter: 'Y' },
   { id: 'markdown', label: 'Markdown Viewer', letter: 'Md' },
   { id: 'mermaid', label: 'Mermaid', letter: 'M' },
 ]
