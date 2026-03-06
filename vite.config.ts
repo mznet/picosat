@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -6,6 +7,12 @@ const isTauri = !!process.env.TAURI_PLATFORM
 
 export default defineConfig(async () => ({
   plugins: [react()],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['src/setupTests.ts'],
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+  },
 
   clearScreen: false,
   server: {
