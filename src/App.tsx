@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import Sidebar, { type ViewType } from './components/Sidebar'
 import MarkdownViewer from './components/MarkdownViewer'
 import MermaidViewer from './components/MermaidViewer'
@@ -6,8 +6,53 @@ import ObjectDiffView from './components/ObjectDiffView'
 import type { ParseFn, FormatFn } from './components/ObjectDiffView'
 import yaml from 'js-yaml'
 
+function isEditableElement(target: EventTarget | null): boolean {
+  if (!target || !(target instanceof HTMLElement)) return false
+  const tag = target.tagName.toLowerCase()
+  const role = target.getAttribute?.('role')
+  const editable = target.getAttribute?.('contenteditable')
+  return tag === 'input' || tag === 'textarea' || role === 'textbox' || editable === 'true' || editable === ''
+}
+
 function App() {
   const [currentView, setCurrentView] = useState<ViewType>('json-diff')
+  const [showShortcutHints, setShowShortcutHints] = useState(false)
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Meta') {
+        setShowShortcutHints(true)
+        return
+      }
+      if (!e.metaKey) return
+      if (isEditableElement(e.target)) return
+      switch (e.key.toLowerCase()) {
+        case 'j':
+          e.preventDefault()
+          setCurrentView('json-diff')
+          break
+        case 'y':
+          e.preventDefault()
+          setCurrentView('yaml-diff')
+          break
+        case 'm':
+          e.preventDefault()
+          setCurrentView(e.shiftKey ? 'markdown' : 'mermaid')
+          break
+        default:
+          break
+      }
+    }
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Meta') setShowShortcutHints(false)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [])
 
   const validateJson: ParseFn = useCallback((json: string) => {
     if (!json.trim()) return { valid: true, error: null, parsed: null }
@@ -73,7 +118,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 flex">
-      <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+      <Sidebar currentView={currentView} onViewChange={setCurrentView} showShortcutHints={showShortcutHints} />
       <main className="flex-1 flex flex-col min-w-0 overflow-auto">
         {currentView === 'json-diff' && (
           <ObjectDiffView

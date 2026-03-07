@@ -227,7 +227,7 @@ export default function ObjectDiffView({
             typeof n.value === 'string'
               ? 'text-green-400'
               : typeof n.value === 'number'
-                ? 'text-blue-400'
+                ? 'text-violet-400'
                 : typeof n.value === 'boolean'
                   ? 'text-yellow-400'
                   : 'text-gray-400'
@@ -361,13 +361,13 @@ export default function ObjectDiffView({
               type="text"
               value={leftLabel}
               onChange={(e) => setLeftLabel(e.target.value)}
-              className="text-xs font-medium text-gray-300 bg-transparent border-b border-transparent hover:border-gray-600 focus:border-blue-500 focus:outline-none px-1 py-0.5 -ml-1 transition-colors"
+              className="text-xs font-medium text-gray-300 bg-transparent border-b border-transparent hover:border-gray-600 focus:border-violet-500 focus:outline-none px-1 py-0.5 -ml-1 transition-colors"
               placeholder="Label"
             />
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowDiff(!showDiff)}
-                className="px-3 py-1.5 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                className="px-3 py-1.5 text-xs font-medium rounded-md bg-violet-600 text-white hover:bg-violet-700 transition-colors"
               >
                 {showDiff ? 'Hide Diff' : 'Show Diff'}
               </button>
@@ -384,7 +384,7 @@ export default function ObjectDiffView({
             onChange={(e) => setLeftText(e.target.value)}
             placeholder={placeholder}
             spellCheck={false}
-            className={`w-full h-[576px] p-3 font-mono text-sm rounded-lg border bg-gray-950 text-gray-100 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
+            className={`w-full h-[576px] p-3 font-mono text-sm rounded-lg border bg-gray-950 text-gray-100 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none ${
               leftError ? 'border-red-500/50 focus:ring-red-500' : 'border-gray-800'
             }`}
           />
@@ -409,7 +409,7 @@ export default function ObjectDiffView({
                 type="text"
                 value={rightLabel}
                 onChange={(e) => setRightLabel(e.target.value)}
-                className="text-xs font-medium text-gray-300 bg-transparent border-b border-transparent hover:border-gray-600 focus:border-blue-500 focus:outline-none px-1 py-0.5 -ml-1 transition-colors"
+                className="text-xs font-medium text-gray-300 bg-transparent border-b border-transparent hover:border-gray-600 focus:border-violet-500 focus:outline-none px-1 py-0.5 -ml-1 transition-colors"
                 placeholder="Label"
               />
               <button
@@ -424,7 +424,7 @@ export default function ObjectDiffView({
               onChange={(e) => setRightText(e.target.value)}
               placeholder={placeholder}
               spellCheck={false}
-              className={`w-full h-[576px] p-3 font-mono text-sm rounded-lg border bg-gray-950 text-gray-100 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
+              className={`w-full h-[576px] p-3 font-mono text-sm rounded-lg border bg-gray-950 text-gray-100 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none ${
                 rightError ? 'border-red-500/50 focus:ring-red-500' : 'border-gray-800'
               }`}
             />

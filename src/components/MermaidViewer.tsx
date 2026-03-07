@@ -281,11 +281,11 @@ export default function MermaidViewer() {
       {fileName && (
         <p className="text-xs text-gray-500 mb-2">File: {fileName}</p>
       )}
-      <div className="flex-1 flex gap-4 min-h-0 border border-gray-800 rounded-lg overflow-hidden bg-gray-950">
+      <div className="flex-1 flex gap-0 min-h-0 items-stretch border border-gray-800 rounded-lg overflow-hidden bg-gray-950">
         {!previewOnly && (
           <>
-            <div className="flex-1 flex flex-col min-w-0">
-              <div className="px-3 py-2 border-b border-gray-800 text-xs font-medium text-gray-500 bg-gray-900/50">
+            <div className="flex-1 flex flex-col min-w-0 min-h-0 self-stretch overflow-hidden">
+              <div className="h-9 px-3 border-b border-gray-800 text-xs font-medium text-gray-500 bg-gray-900/50 flex-shrink-0 flex items-center">
                 Editor
               </div>
               <textarea
@@ -293,23 +293,23 @@ export default function MermaidViewer() {
                 onChange={(e) => setCode(e.target.value)}
                 placeholder="graph LR&#10;  A --> B"
                 spellCheck={false}
-                className="flex-1 w-full p-4 font-mono text-sm text-gray-100 bg-gray-950 placeholder-gray-600 focus:outline-none focus:ring-0 resize-none"
+                className="flex-1 min-h-0 w-full p-4 font-mono text-sm text-gray-100 bg-gray-950 placeholder-gray-600 focus:outline-none focus:ring-0 resize-none"
               />
             </div>
-            <div className="w-px bg-gray-800 flex-shrink-0" />
+            <div className="w-px bg-gray-800 flex-shrink-0 self-stretch" />
           </>
         )}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <div className="px-3 py-2 border-b border-gray-800 text-xs font-medium text-gray-500 bg-gray-900/50 flex-shrink-0 flex items-center justify-between gap-2">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 self-stretch overflow-hidden">
+          <div className="h-9 px-3 border-b border-gray-800 text-xs font-medium text-gray-500 bg-gray-900/50 flex-shrink-0 flex items-center justify-between gap-2">
             <span>Preview</span>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <span className="text-xs text-gray-400 min-w-[3ch] tabular-nums" aria-live="polite">
                 {Math.round(scale * 100)}%
               </span>
               <button
                 type="button"
                 onClick={zoomOut}
-                className="px-2 py-1 text-xs font-medium rounded-md bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700 transition-colors"
+                className="size-6 flex items-center justify-center text-xs font-medium rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700 transition-colors"
                 title="Zoom out"
               >
                 −
@@ -317,7 +317,7 @@ export default function MermaidViewer() {
               <button
                 type="button"
                 onClick={zoomIn}
-                className="px-2 py-1 text-xs font-medium rounded-md bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700 transition-colors"
+                className="size-6 flex items-center justify-center text-xs font-medium rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700 transition-colors"
                 title="Zoom in"
               >
                 +
@@ -391,7 +391,7 @@ export default function MermaidViewer() {
                         handleMinimapClick(e as unknown as React.MouseEvent<HTMLDivElement>)
                       }
                     }}
-                    className="relative w-[120px] h-[90px] rounded border border-gray-700 overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="relative w-[120px] h-[90px] rounded border border-gray-700 overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-500"
                     style={{ minWidth: MINIMAP_WIDTH, minHeight: MINIMAP_HEIGHT }}
                   >
                     <div
@@ -415,7 +415,7 @@ export default function MermaidViewer() {
                       />
                     </div>
                     <div
-                      className="absolute border-2 border-blue-400 bg-blue-400/20 pointer-events-none"
+                      className="absolute border-2 border-violet-400 bg-violet-400/20 pointer-events-none"
                       style={{
                         left: scrollInfo.scrollLeft * minimapScale,
                         top: scrollInfo.scrollTop * minimapScale,

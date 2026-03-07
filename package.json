@@ -1,5 +1,5 @@
 {
-  "name": "json-diff-ui",
+  "name": "picosat",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:build": "cross-env CI=false tauri build",
+    "tauri:clean": "cd src-tauri && cargo clean"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
@@ -37,6 +38,7 @@
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
+    "cross-env": "^7.0.3",
     "eslint": "^9.17.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.16",

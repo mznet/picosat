@@ -18,7 +18,9 @@
         "height": 800,
         "resizable": true,
         "fullscreen": false,
-        "decorations": true
+        "decorations": true,
+        "backgroundColor": "#030712",
+        "titleBarStyle": "Transparent"
       }
     ],
     "security": {
