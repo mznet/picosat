@@ -91,7 +91,6 @@ export default function MermaidViewer() {
   const zoomOut = useCallback(() => {
     setScale((s) => Math.max(MIN_SCALE, s / ZOOM_FACTOR))
   }, [])
-  const zoomReset = useCallback(() => setScale(1), [])
 
   const handlePreviewWheel = useCallback(
     (e: React.WheelEvent<HTMLDivElement>) => {
@@ -150,16 +149,27 @@ export default function MermaidViewer() {
   }, [isDragging])
 
   useEffect(() => {
-    if (scrollAdjustRef.current === null) return
-    const { contentX, contentY, cursorX, cursorY, ratio } = scrollAdjustRef.current
-    scrollAdjustRef.current = null
     const container = previewScrollRef.current
     if (!container) return
-    requestAnimationFrame(() => {
-      container.scrollLeft = contentX * ratio - cursorX
-      container.scrollTop = contentY * ratio - cursorY
-    })
+    if (scrollAdjustRef.current !== null) {
+      const { contentX, contentY, cursorX, cursorY, ratio } = scrollAdjustRef.current
+      scrollAdjustRef.current = null
+      requestAnimationFrame(() => {
+        container.scrollLeft = contentX * ratio - cursorX
+        container.scrollTop = contentY * ratio - cursorY
+        clampScroll(container)
+      })
+    } else {
+      requestAnimationFrame(() => clampScroll(container))
+    }
   }, [scale])
+
+  function clampScroll(container: HTMLDivElement) {
+    const maxLeft = Math.max(0, container.scrollWidth - container.clientWidth)
+    const maxTop = Math.max(0, container.scrollHeight - container.clientHeight)
+    container.scrollLeft = Math.max(0, Math.min(container.scrollLeft, maxLeft))
+    container.scrollTop = Math.max(0, Math.min(container.scrollTop, maxTop))
+  }
 
   useEffect(() => {
     const container = previewScrollRef.current
@@ -292,7 +302,10 @@ export default function MermaidViewer() {
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <div className="px-3 py-2 border-b border-gray-800 text-xs font-medium text-gray-500 bg-gray-900/50 flex-shrink-0 flex items-center justify-between gap-2">
             <span>Preview</span>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-400 min-w-[3ch] tabular-nums" aria-live="polite">
+                {Math.round(scale * 100)}%
+              </span>
               <button
                 type="button"
                 onClick={zoomOut}
@@ -309,22 +322,14 @@ export default function MermaidViewer() {
               >
                 +
               </button>
-              <button
-                type="button"
-                onClick={zoomReset}
-                className="px-2 py-1 text-xs font-medium rounded-md bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700 transition-colors"
-                title="Reset zoom (100%)"
-              >
-                100%
-              </button>
             </div>
           </div>
-          <div className="flex-1 flex min-h-0">
+          <div className="flex-1 flex min-h-0 relative">
             <div
               ref={previewScrollRef}
               onWheel={handlePreviewWheel}
               onMouseDown={handlePreviewMouseDown}
-              className={`flex-1 p-4 overflow-auto flex items-start justify-center min-h-[200px] ${svg && !error ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : ''}`}
+              className={`flex-1 min-h-0 p-4 overflow-auto overflow-x-scroll overflow-y-scroll select-none ${svg && !error ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : ''}`}
             >
               {error && (
                 <p className="text-red-400 text-sm">{error}</p>
@@ -334,18 +339,27 @@ export default function MermaidViewer() {
                   style={
                     contentSize
                       ? {
+                          position: 'relative' as const,
+                          display: 'inline-block',
                           width: contentSize.w * scale,
                           height: contentSize.h * scale,
+                          minWidth: contentSize.w * scale,
                           minHeight: contentSize.h * scale,
+                          margin: '0 auto',
+                          boxSizing: 'border-box',
+                          verticalAlign: 'top',
                         }
                       : undefined
                   }
-                  className="flex items-center justify-center"
+                  className="block"
                 >
                   <div
                     ref={contentRef}
                     className="mermaid-preview"
                     style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: 0,
                       transform: `scale(${scale})`,
                       transformOrigin: '0 0',
                       width: contentSize?.w ?? 'auto',
@@ -363,8 +377,8 @@ export default function MermaidViewer() {
               const minimapScale = Math.min(MINIMAP_WIDTH / (contentSize.w * scale), MINIMAP_HEIGHT / (contentSize.h * scale))
               return (
                 <div
-                  className="flex-shrink-0 w-[120px] border-l border-gray-800 flex flex-col items-center justify-center py-2 bg-gray-900/50"
-                  title="Minimap: click to jump, two-finger scroll to pan"
+                  className="absolute right-2 bottom-2 z-10 flex flex-col items-center rounded border border-gray-700 bg-gray-900/90 shadow-lg py-1.5 px-1"
+                  title="Minimap: click to jump"
                 >
                   <div className="text-[10px] text-gray-500 mb-1">Minimap</div>
                   <div
