@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import EpochConverter, { detectUnit, toMillis } from './EpochConverter'
 
 describe('detectUnit', () => {
@@ -66,8 +66,9 @@ describe('EpochConverter', () => {
       const input = screen.getByPlaceholderText(/e\.g\. 1700000000/)
       fireEvent.change(input, { target: { value: '1700000000' } })
       expect(screen.getByText('Detected: seconds')).toBeInTheDocument()
-      expect(screen.getByText('UTC')).toBeInTheDocument()
-      expect(screen.getByText('Local')).toBeInTheDocument()
+      const timestampSection = screen.getByRole('heading', { name: 'Timestamp → Date' }).closest('div')!
+      expect(within(timestampSection).getByText('UTC')).toBeInTheDocument()
+      expect(within(timestampSection).getByText('Local')).toBeInTheDocument()
     })
 
     it('shows detected milliseconds for 13-digit input', () => {
