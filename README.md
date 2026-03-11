@@ -56,6 +56,16 @@ npm run tauri build  # Build
 | `npm run tauri dev` | Tauri development mode |
 | `npm run tauri build` | Build Tauri desktop app |
 
+## CI & Branch Protection
+
+PRs run **lint** and **test** via [GitHub Actions](.github/workflows/ci.yml). To require that checks pass before merging:
+
+1. Go to **Settings → Branches** → Branch protection rules.
+2. Add or edit a rule for `main`.
+3. Enable **Require status checks to pass before merging**.
+4. In **Status checks that are required**, select **lint & test** (the CI job name).
+5. Save. PRs can then only be merged when the CI workflow succeeds.
+
 ## Project Structure
 
 ```
