@@ -1,4 +1,4 @@
-type ViewType = 'json-diff' | 'yaml-diff' | 'markdown' | 'mermaid'
+type ViewType = 'json-diff' | 'yaml-diff' | 'markdown' | 'mermaid' | 'epoch'
 
 interface SidebarProps {
   currentView: ViewType
@@ -11,6 +11,7 @@ const views: { id: ViewType; label: string; letter: string; shortcutHint: string
   { id: 'yaml-diff', label: 'YAML Diff', letter: 'Y', shortcutHint: 'Y' },
   { id: 'markdown', label: 'Markdown Viewer', letter: 'Md', shortcutHint: '⇧M' },
   { id: 'mermaid', label: 'Mermaid', letter: 'M', shortcutHint: 'M' },
+  { id: 'epoch', label: 'Epoch Converter', letter: 'E', shortcutHint: 'E' },
 ]
 
 export default function Sidebar({ currentView, onViewChange, showShortcutHints = false }: SidebarProps) {
