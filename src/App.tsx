@@ -3,6 +3,7 @@ import Sidebar, { type ViewType } from './components/Sidebar'
 import MarkdownViewer from './components/MarkdownViewer'
 import MermaidViewer from './components/MermaidViewer'
 import ObjectDiffView from './components/ObjectDiffView'
+import EpochConverter from './components/EpochConverter'
 import type { ParseFn, FormatFn } from './components/ObjectDiffView'
 import yaml from 'js-yaml'
 
@@ -38,6 +39,10 @@ function App() {
         case 'm':
           e.preventDefault()
           setCurrentView(e.shiftKey ? 'markdown' : 'mermaid')
+          break
+        case 'e':
+          e.preventDefault()
+          setCurrentView('epoch')
           break
         default:
           break
@@ -149,6 +154,9 @@ function App() {
           <div className="max-w-[1800px] mx-auto px-4 py-6 w-full flex-1 flex flex-col min-h-0">
             <MermaidViewer />
           </div>
+        )}
+        {currentView === 'epoch' && (
+          <EpochConverter />
         )}
       </main>
     </div>
