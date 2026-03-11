@@ -112,27 +112,27 @@ export default function MarkdownViewer() {
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
-                  a: ({ node, ...props }) => (
+                  a: ({ node: _node, ...props }) => (
                     <a {...props} className="text-violet-400 hover:underline" target="_blank" rel="noopener noreferrer" />
                   ),
-                  code: ({ node, className, children, ...props }) =>
+                  code: ({ node: _node, className, children, ...props }) =>
                     className ? (
                       <code className={className} {...props}>{children}</code>
                     ) : (
                       <code className="px-1.5 py-0.5 rounded bg-gray-800 text-gray-200 text-sm" {...props}>{children}</code>
                     ),
-                  pre: ({ node, ...props }) => (
+                  pre: ({ node: _node, ...props }) => (
                     <pre className="bg-gray-800 rounded-lg p-4 overflow-x-auto text-sm" {...props} />
                   ),
-                  table: ({ node, ...props }) => (
+                  table: ({ node: _node, ...props }) => (
                     <div className="overflow-x-auto my-3">
                       <table className="min-w-full border-collapse border border-gray-600" {...props} />
                     </div>
                   ),
-                  th: ({ node, ...props }) => (
+                  th: ({ node: _node, ...props }) => (
                     <th className="border border-gray-600 bg-gray-800 px-3 py-2 text-left text-gray-200 font-medium" {...props} />
                   ),
-                  td: ({ node, ...props }) => (
+                  td: ({ node: _node, ...props }) => (
                     <td className="border border-gray-600 px-3 py-2 text-gray-300" {...props} />
                   ),
                 }}
