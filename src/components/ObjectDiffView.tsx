@@ -45,6 +45,29 @@ function getRowBgClass(diffType: DiffType, side: 'left' | 'right'): string {
   }
 }
 
+function highlightText(text: string, query: string): React.ReactNode {
+  if (!query) return text
+  const lower = text.toLowerCase()
+  const q = query.toLowerCase()
+  const parts: React.ReactNode[] = []
+  let last = 0
+  let idx = lower.indexOf(q)
+  let i = 0
+  while (idx !== -1) {
+    if (idx > last) parts.push(text.slice(last, idx))
+    parts.push(
+      <mark key={`m-${i}-${idx}`} className="diff-match">
+        {text.slice(idx, idx + q.length)}
+      </mark>
+    )
+    last = idx + q.length
+    idx = lower.indexOf(q, last)
+    i++
+  }
+  if (last < text.length) parts.push(text.slice(last))
+  return parts
+}
+
 export default function ObjectDiffView({
   title,
   parseFn,
@@ -59,10 +82,17 @@ export default function ObjectDiffView({
   const [rightError, setRightError] = useState<string | null>(null)
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const tableRef = useRef<HTMLTableElement>(null)
   const [scrollInfo, setScrollInfo] = useState({ scrollTop: 0, scrollHeight: 1, clientHeight: 1 })
   const [leftLabel, setLeftLabel] = useState('Original')
   const [rightLabel, setRightLabel] = useState('Modified')
   const [showDiff, setShowDiff] = useState(false)
+  const [leftWidth, setLeftWidth] = useState(50)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [currentMatchIdx, setCurrentMatchIdx] = useState(0)
+  const [totalMatches, setTotalMatches] = useState(0)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   const leftValidation = useMemo(() => {
     const result = parseFn(leftText)
@@ -163,6 +193,105 @@ export default function ObjectDiffView({
     return () => container.removeEventListener('scroll', handleScroll)
   }, [flatDiffRows])
 
+  const handleDividerMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault()
+      const table = tableRef.current
+      if (!table) return
+      const tableRect = table.getBoundingClientRect()
+      const startX = e.clientX
+      const startWidth = leftWidth
+
+      const handleMove = (moveEvent: MouseEvent) => {
+        const deltaX = moveEvent.clientX - startX
+        const deltaPercent = (deltaX / tableRect.width) * 100
+        const newWidth = Math.max(15, Math.min(85, startWidth + deltaPercent))
+        setLeftWidth(newWidth)
+      }
+
+      const handleUp = () => {
+        document.removeEventListener('mousemove', handleMove)
+        document.removeEventListener('mouseup', handleUp)
+        document.body.style.cursor = ''
+        document.body.style.userSelect = ''
+      }
+
+      document.body.style.cursor = 'col-resize'
+      document.body.style.userSelect = 'none'
+      document.addEventListener('mousemove', handleMove)
+      document.addEventListener('mouseup', handleUp)
+    },
+    [leftWidth]
+  )
+
+  useEffect(() => {
+    if (!showDiff) return
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+        e.preventDefault()
+        e.stopPropagation()
+        setSearchOpen(true)
+        setTimeout(() => {
+          searchInputRef.current?.focus()
+          searchInputRef.current?.select()
+        }, 0)
+      }
+    }
+    document.addEventListener('keydown', handler, true)
+    return () => document.removeEventListener('keydown', handler, true)
+  }, [showDiff])
+
+  useEffect(() => {
+    setCurrentMatchIdx(0)
+  }, [searchQuery])
+
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container || !searchQuery) {
+      setTotalMatches(0)
+      return
+    }
+    const id = requestAnimationFrame(() => {
+      if (!scrollContainerRef.current) return
+      const matches = scrollContainerRef.current.querySelectorAll('.diff-match')
+      setTotalMatches(matches.length)
+    })
+    return () => cancelAnimationFrame(id)
+  }, [searchQuery, diffTree, collapsed])
+
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+    const id = requestAnimationFrame(() => {
+      if (!scrollContainerRef.current) return
+      const matches = scrollContainerRef.current.querySelectorAll('.diff-match')
+      matches.forEach((el, i) => {
+        if (i === currentMatchIdx && totalMatches > 0) {
+          el.classList.add('diff-match-current')
+          el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' })
+        } else {
+          el.classList.remove('diff-match-current')
+        }
+      })
+    })
+    return () => cancelAnimationFrame(id)
+  }, [currentMatchIdx, totalMatches, searchQuery, diffTree, collapsed])
+
+  const gotoNextMatch = useCallback(() => {
+    if (totalMatches === 0) return
+    setCurrentMatchIdx((i) => (i + 1) % totalMatches)
+  }, [totalMatches])
+
+  const gotoPrevMatch = useCallback(() => {
+    if (totalMatches === 0) return
+    setCurrentMatchIdx((i) => (i - 1 + totalMatches) % totalMatches)
+  }, [totalMatches])
+
+  const closeSearch = useCallback(() => {
+    setSearchOpen(false)
+    setSearchQuery('')
+  }, [])
+
   const handleOverviewClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const container = scrollContainerRef.current
     if (!container) return
@@ -188,7 +317,9 @@ export default function ObjectDiffView({
           const parentIsArray = n.path.match(/\[\d+\]$/)
           if (!parentIsArray) {
             content.push(
-              <span key="key" className="text-purple-400">"{n.key}"</span>,
+              <span key="key" className="text-purple-400">
+                {highlightText(`"${n.key}"`, searchQuery)}
+              </span>,
               <span key="colon" className="text-gray-400">: </span>
             )
           }
@@ -231,7 +362,7 @@ export default function ObjectDiffView({
                 : typeof n.value === 'boolean'
                   ? 'text-yellow-400'
                   : 'text-gray-400'
-          content.push(<span key="val" className={valClass}>{val}</span>)
+          content.push(<span key="val" className={valClass}>{highlightText(val, searchQuery)}</span>)
           if (!n.isLast) content.push(<span key="comma" className="text-gray-400">,</span>)
         }
         return <span>{content}</span>
@@ -243,8 +374,8 @@ export default function ObjectDiffView({
           className="border-b border-gray-800/50 hover:bg-gray-800/30"
           data-path={node.path}
         >
-          <td className={`py-1 px-2 font-mono text-sm ${getRowBgClass(node.diffType, 'left')}`}>
-            <div className="flex items-center" style={getIndent(node.depth)}>
+          <td className={`py-1 px-2 font-mono text-sm align-top break-words ${getRowBgClass(node.diffType, 'left')}`}>
+            <div className="flex items-start min-w-0" style={getIndent(node.depth)}>
               {node.isCollapsible && leftNode && (
                 <button
                   onClick={() => toggleCollapse(node.path)}
@@ -263,13 +394,12 @@ export default function ObjectDiffView({
                   </svg>
                 </button>
               )}
-              {!node.isCollapsible && <span className="w-4 mr-1" />}
-              {renderSide(leftNode)}
+              {!node.isCollapsible && <span className="w-4 mr-1 flex-shrink-0" />}
+              <span className="min-w-0 break-words">{renderSide(leftNode)}</span>
             </div>
           </td>
-          <td className="w-px bg-gray-700" />
-          <td className={`py-1 px-2 font-mono text-sm ${getRowBgClass(node.diffType, 'right')}`}>
-            <div className="flex items-center" style={getIndent(node.depth)}>
+          <td className={`py-1 px-2 font-mono text-sm align-top break-words ${getRowBgClass(node.diffType, 'right')}`}>
+            <div className="flex items-start min-w-0" style={getIndent(node.depth)}>
               {node.isCollapsible && rightNode && (
                 <button
                   onClick={() => toggleCollapse(node.path)}
@@ -288,8 +418,8 @@ export default function ObjectDiffView({
                   </svg>
                 </button>
               )}
-              {!node.isCollapsible && <span className="w-4 mr-1" />}
-              {renderSide(rightNode)}
+              {!node.isCollapsible && <span className="w-4 mr-1 flex-shrink-0" />}
+              <span className="min-w-0 break-words">{renderSide(rightNode)}</span>
             </div>
           </td>
         </tr>
@@ -323,8 +453,7 @@ export default function ObjectDiffView({
                 )}
               </div>
             </td>
-            <td className="w-px bg-gray-700" />
-            <td className={`py-1 px-2 font-mono text-sm ${getRowBgClass(node.diffType, 'right')}`}>
+              <td className={`py-1 px-2 font-mono text-sm ${getRowBgClass(node.diffType, 'right')}`}>
               <div style={getIndent(node.depth)}>
                 <span className="w-4 mr-1 inline-block" />
                 {rightNode && (
@@ -340,7 +469,7 @@ export default function ObjectDiffView({
       }
       return rows
     },
-    [collapsed, toggleCollapse]
+    [collapsed, toggleCollapse, searchQuery]
   )
 
   const viewportRatio = scrollInfo.clientHeight / scrollInfo.scrollHeight
@@ -460,6 +589,19 @@ export default function ObjectDiffView({
             {diffTree && (
               <div className="flex items-center gap-2">
                 <button
+                  onClick={() => {
+                    setSearchOpen(true)
+                    setTimeout(() => {
+                      searchInputRef.current?.focus()
+                      searchInputRef.current?.select()
+                    }, 0)
+                  }}
+                  className="px-2 py-1.5 text-xs font-medium rounded bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors"
+                  title="Find (Ctrl/Cmd+F)"
+                >
+                  Find
+                </button>
+                <button
                   onClick={expandAll}
                   className="px-2 py-1.5 text-xs font-medium rounded bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors"
                 >
@@ -475,8 +617,61 @@ export default function ObjectDiffView({
             )}
           </div>
 
+          {searchOpen && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-gray-900 border-b border-gray-800">
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    e.preventDefault()
+                    closeSearch()
+                  } else if (e.key === 'Enter') {
+                    e.preventDefault()
+                    if (e.shiftKey) gotoPrevMatch()
+                    else gotoNextMatch()
+                  }
+                }}
+                placeholder="Find in diff..."
+                className="flex-1 px-2 py-1 text-xs font-mono bg-gray-950 text-gray-100 rounded border border-gray-700 focus:outline-none focus:border-violet-500"
+              />
+              <span className="text-xs text-gray-500 tabular-nums whitespace-nowrap min-w-[80px] text-right">
+                {searchQuery
+                  ? totalMatches === 0
+                    ? 'No results'
+                    : `${currentMatchIdx + 1} / ${totalMatches}`
+                  : ''}
+              </span>
+              <button
+                onClick={gotoPrevMatch}
+                disabled={totalMatches === 0}
+                className="px-2 py-1 text-xs rounded bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                title="Previous (Shift+Enter)"
+              >
+                ↑
+              </button>
+              <button
+                onClick={gotoNextMatch}
+                disabled={totalMatches === 0}
+                className="px-2 py-1 text-xs rounded bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                title="Next (Enter)"
+              >
+                ↓
+              </button>
+              <button
+                onClick={closeSearch}
+                className="px-2 py-1 text-xs rounded bg-gray-800 text-gray-300 hover:bg-gray-700"
+                title="Close (Esc)"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           <div className="flex">
-            <div ref={scrollContainerRef} className="flex-1 overflow-auto max-h-[600px]">
+            <div ref={scrollContainerRef} className="flex-1 overflow-auto max-h-[600px] relative">
               {!leftText.trim() && !rightText.trim() ? (
                 <div className="flex flex-col items-center justify-center py-16 text-gray-500">
                   <svg
@@ -533,16 +728,34 @@ export default function ObjectDiffView({
                   <p className="text-xs">Files are identical</p>
                 </div>
               ) : (
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-xs text-gray-500 bg-gray-900/50">
-                      <th className="py-2 px-3 text-left font-medium w-1/2">{leftLabel}</th>
-                      <th className="w-px bg-gray-700" />
-                      <th className="py-2 px-3 text-left font-medium w-1/2">{rightLabel}</th>
-                    </tr>
-                  </thead>
-                  <tbody>{renderDiffNode(diffTree, 0)}</tbody>
-                </table>
+                <div className="relative">
+                  <table ref={tableRef} className="w-full table-fixed">
+                    <colgroup>
+                      <col style={{ width: `${leftWidth}%` }} />
+                      <col style={{ width: `${100 - leftWidth}%` }} />
+                    </colgroup>
+                    <thead>
+                      <tr className="text-xs text-gray-500 bg-gray-900/50">
+                        <th className="py-2 px-3 text-left font-medium overflow-hidden">
+                          {leftLabel}
+                        </th>
+                        <th className="py-2 px-3 text-left font-medium overflow-hidden">
+                          {rightLabel}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>{renderDiffNode(diffTree, 0)}</tbody>
+                  </table>
+                  <div
+                    onMouseDown={handleDividerMouseDown}
+                    className="absolute top-0 bottom-0 cursor-col-resize bg-gray-700 hover:bg-violet-500 z-20 select-none"
+                    style={{
+                      left: `calc(${leftWidth}% - 3px)`,
+                      width: '6px'
+                    }}
+                    title="Drag to resize"
+                  />
+                </div>
               )}
             </div>
 
